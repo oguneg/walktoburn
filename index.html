@@ -53,7 +53,18 @@
 
     </div>
 
-    <div class="slider-field body-fat-field">
+    <div class="rmr-toggle-row">
+      <div class="rmr-toggle-text">
+        <span class="rmr-toggle-title">Subtract resting calories</span>
+        <span class="rmr-toggle-sub">Uses body fat % to estimate the calories you'd burn anyway, so the result shows only what the walk adds. Optional — off by default.</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="rmr-toggle">
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+
+    <div class="slider-field body-fat-field" id="body-fat-panel" hidden>
       <div class="slider-label-row">
         <label for="bodyfat">Body fat %</label>
         <span class="slider-value"><span id="bodyfat-value">20</span>% <span class="muted" id="bodyfat-note">(typical estimate)</span></span>
@@ -62,21 +73,27 @@
       <div class="slider-ticks">
         <span>lean</span><span>average</span><span>higher</span>
       </div>
-      <p class="field-help">Used to estimate your resting burn rate, so the result reflects calories the walk itself adds — not calories you'd burn anyway. Not sure? The default is a reasonable population estimate.</p>
+      <p class="field-help">Not sure? The default is a reasonable population estimate for your gender.</p>
     </div>
   </section>
 
   <section class="card" id="controls">
-    <h2><span class="step">2</span> Pace &amp; incline</h2>
+    <div class="card-header-row">
+      <h2><span class="step">2</span> Pace &amp; incline</h2>
+      <div class="mode-toggle" data-target="speed-mode">
+        <button type="button" class="mode-btn" data-mode="speed">Speed</button>
+        <button type="button" class="mode-btn" data-mode="pace">Pace</button>
+      </div>
+    </div>
 
     <div class="slider-field">
       <div class="slider-label-row">
-        <label for="speed">Pace</label>
+        <label for="speed" id="speed-label">Speed</label>
         <span class="slider-value"><span id="speed-value">3.0</span> <span id="speed-unit">mph</span> <span class="muted" id="speed-alt">(4.8 km/h)</span></span>
       </div>
       <input type="range" id="speed" min="1" max="6" step="0.1" value="3.0">
       <div class="slider-ticks">
-        <span>1.0 stroll</span><span>3.5 brisk</span><span>6.0 jog</span>
+        <span id="speed-tick-min">1.0 stroll</span><span id="speed-tick-mid">3.5 brisk</span><span id="speed-tick-max">6.0 jog</span>
       </div>
     </div>
 
@@ -85,24 +102,24 @@
         <label for="incline">Incline</label>
         <span class="slider-value"><span id="incline-value">0</span>%</span>
       </div>
-      <input type="range" id="incline" min="0" max="15" step="1" value="0">
+      <input type="range" id="incline" min="0" max="25" step="1" value="0">
       <div class="slider-ticks">
-        <span>0% flat</span><span>7% hill</span><span>15% steep</span>
+        <span>0% flat</span><span>13% hill</span><span>25% steep</span>
       </div>
     </div>
   </section>
 
   <section class="card highlight" id="result">
-    <h2><span class="step">3</span> Time to burn 100 active calories</h2>
+    <h2><span class="step">3</span> Time to burn 100 <span class="active-word" id="result-active-word"></span>calories</h2>
     <div class="result-main">
       <span class="result-number" id="result-minutes">—</span>
       <span class="result-unit">minutes</span>
     </div>
-    <p class="result-caption">Calories added by the walk itself, above your resting burn.</p>
+    <p class="result-caption" id="result-caption" hidden>Calories added by the walk itself, above your resting burn.</p>
     <div class="result-sub-grid">
       <div class="stat">
         <span class="stat-value" id="stat-kcalmin">—</span>
-        <span class="stat-label">active kcal / min</span>
+        <span class="stat-label"><span class="active-word" id="kcalmin-active-word"></span>kcal / min</span>
       </div>
       <div class="stat">
         <span class="stat-value" id="stat-mets">—</span>
@@ -121,7 +138,7 @@
 
   <section class="card" id="compare">
     <h2><span class="step">4</span> How your walk compares</h2>
-    <p class="section-note">Same 100 active calories, seven different ways to get there. Shorter bar = faster burn.</p>
+    <p class="section-note">Same 100 <span class="active-word" id="compare-active-word"></span>calories, seven different ways to get there. Shorter bar = faster burn.</p>
     <div id="compare-chart" class="compare-chart"></div>
     <div class="legend">
       <span class="legend-item"><i class="dot dot-you"></i> Your walk</span>
@@ -152,7 +169,7 @@
 </main>
 
 <footer>
-  <p>Estimates use the ACSM walking/running metabolic equations for exercise cost and the Katch-McArdle formula (via body fat %) for resting burn. Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
+  <p>Estimates use the ACSM walking/running metabolic equations. If you enable resting calories, they're subtracted using the Katch-McArdle formula (via body fat %). Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
   <p class="repo-link"><a href="https://github.com/oguneg/walktoburn" target="_blank" rel="noopener">View on GitHub</a></p>
 </footer>
 

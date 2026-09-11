@@ -11,28 +11,39 @@
     gender: "male",
     bodyFatPct: DEFAULT_BODY_FAT.male,
     bodyFatTouched: false,
+    rmrEnabled: false,
     speedMph: 3.0,
+    speedMode: "speed",
     inclinePct: 0,
     unitSystem: detectUnitSystem()
   };
 
   var els = {
     unitButtons: document.querySelectorAll('[data-target="unit-system"] .unit-btn-lg'),
+    modeButtons: document.querySelectorAll('[data-target="speed-mode"] .mode-btn'),
     weight: document.getElementById("weight"),
     height: document.getElementById("height"),
     gender: document.getElementById("gender"),
     weightUnitHint: document.getElementById("weight-unit-hint"),
     heightUnitHint: document.getElementById("height-unit-hint"),
+    rmrToggle: document.getElementById("rmr-toggle"),
+    bodyFatPanel: document.getElementById("body-fat-panel"),
     bodyfat: document.getElementById("bodyfat"),
     bodyfatValue: document.getElementById("bodyfat-value"),
     bodyfatNote: document.getElementById("bodyfat-note"),
     speed: document.getElementById("speed"),
+    speedLabel: document.getElementById("speed-label"),
     incline: document.getElementById("incline"),
     speedValue: document.getElementById("speed-value"),
     speedUnit: document.getElementById("speed-unit"),
     speedAlt: document.getElementById("speed-alt"),
+    speedTickMin: document.getElementById("speed-tick-min"),
+    speedTickMid: document.getElementById("speed-tick-mid"),
+    speedTickMax: document.getElementById("speed-tick-max"),
     inclineValue: document.getElementById("incline-value"),
     resultMinutes: document.getElementById("result-minutes"),
+    resultCaption: document.getElementById("result-caption"),
+    activeWordEls: document.querySelectorAll(".active-word"),
     statKcalMin: document.getElementById("stat-kcalmin"),
     statMets: document.getElementById("stat-mets"),
     statDistance: document.getElementById("stat-distance"),
@@ -48,6 +59,12 @@
     { label: "Easy hill", speed: 2.0, incline: 6, type: "incline" },
     { label: "Steady hill", speed: 2.5, incline: 10, type: "incline" },
     { label: "Steep hill", speed: 2.0, incline: 15, type: "incline" }
+  ];
+
+  var SPEED_TICK_ANCHORS = [
+    { mph: 1.0, word: "stroll" },
+    { mph: 3.5, word: "brisk" },
+    { mph: 6.0, word: "jog" }
   ];
 
   var MPH_TO_M_PER_MIN = 26.8224;
@@ -83,14 +100,15 @@
     return 370 + 21.6 * leanMassKg;
   }
 
-  function activeKcalPerMin(speedMph, inclinePct, weightKg, bodyFatPct) {
-    var resting = restingKcalPerDay(weightKg, bodyFatPct) / 1440;
+  function resultKcalPerMin(speedMph, inclinePct, weightKg, bodyFatPct, rmrEnabled) {
     var gross = grossKcalPerMin(speedMph, inclinePct, weightKg);
+    if (!rmrEnabled) return gross;
+    var resting = restingKcalPerDay(weightKg, bodyFatPct) / 1440;
     return Math.max(gross - resting, 0.1);
   }
 
-  function minutesToBurn100Active(speedMph, inclinePct, weightKg, bodyFatPct) {
-    return 100 / activeKcalPerMin(speedMph, inclinePct, weightKg, bodyFatPct);
+  function minutesToBurn100(speedMph, inclinePct, weightKg, bodyFatPct, rmrEnabled) {
+    return 100 / resultKcalPerMin(speedMph, inclinePct, weightKg, bodyFatPct, rmrEnabled);
   }
 
   function stepLengthMeters(heightCm, gender) {
@@ -109,6 +127,16 @@
   }
   function ftInToCm(ft, inch) { return (ft * 12 + inch) * 2.54; }
 
+  // Minutes-per-unit pace, formatted as "MM:SS". unitPerHour is speed in
+  // whatever unit (mph or km/h) the pace should be expressed per.
+  function paceString(unitPerHour) {
+    var minPerUnit = 60 / unitPerHour;
+    var mm = Math.floor(minPerUnit);
+    var ss = Math.round((minPerUnit - mm) * 60);
+    if (ss === 60) { mm += 1; ss = 0; }
+    return mm + ":" + (ss < 10 ? "0" : "") + ss;
+  }
+
   function setRangeFill(input) {
     var min = parseFloat(input.min), max = parseFloat(input.max), val = parseFloat(input.value);
     var pct = ((val - min) / (max - min)) * 100;
@@ -126,25 +154,50 @@
     return fmt(speedMph * MPH_TO_KPH, 1) + " km/h";
   }
 
+  function updateSpeedReadout() {
+    var mph = state.speedMph;
+    var kph = mph * MPH_TO_KPH;
+    var imperial = state.unitSystem === "imperial";
+
+    if (state.speedMode === "speed") {
+      els.speedValue.textContent = imperial ? fmt(mph, 1) : fmt(kph, 1);
+      els.speedUnit.textContent = imperial ? "mph" : "km/h";
+      els.speedAlt.textContent = imperial ? "(" + fmt(kph, 1) + " km/h)" : "(" + fmt(mph, 1) + " mph)";
+    } else {
+      els.speedValue.textContent = imperial ? paceString(mph) : paceString(kph);
+      els.speedUnit.textContent = imperial ? "/mi" : "/km";
+      els.speedAlt.textContent = imperial ? "(" + paceString(kph) + " /km)" : "(" + paceString(mph) + " /mi)";
+    }
+
+    els.speedLabel.textContent = state.speedMode === "speed" ? "Speed" : "Pace";
+
+    SPEED_TICK_ANCHORS.forEach(function (anchor, i) {
+      var target = [els.speedTickMin, els.speedTickMid, els.speedTickMax][i];
+      var value;
+      if (state.speedMode === "speed") {
+        value = imperial ? fmt(anchor.mph, 1) : fmt(anchor.mph * MPH_TO_KPH, 1);
+      } else {
+        value = imperial ? paceString(anchor.mph) : paceString(anchor.mph * MPH_TO_KPH);
+      }
+      target.textContent = value + " " + anchor.word;
+    });
+  }
+
   function render() {
-    var mins = minutesToBurn100Active(state.speedMph, state.inclinePct, state.weightKg, state.bodyFatPct);
-    var kcalMin = activeKcalPerMin(state.speedMph, state.inclinePct, state.weightKg, state.bodyFatPct);
+    var mins = minutesToBurn100(state.speedMph, state.inclinePct, state.weightKg, state.bodyFatPct, state.rmrEnabled);
+    var kcalMin = resultKcalPerMin(state.speedMph, state.inclinePct, state.weightKg, state.bodyFatPct, state.rmrEnabled);
     var mets = vo2MlPerKgMin(state.speedMph, state.inclinePct) / 3.5;
     var distanceMeters = state.speedMph * MPH_TO_M_PER_MIN * mins;
     var steps = distanceMeters / stepLengthMeters(state.heightCm, state.gender);
 
-    if (state.unitSystem === "imperial") {
-      els.speedValue.textContent = fmt(state.speedMph, 1);
-      els.speedUnit.textContent = "mph";
-      els.speedAlt.textContent = "(" + fmt(state.speedMph * MPH_TO_KPH, 1) + " km/h)";
-    } else {
-      els.speedValue.textContent = fmt(state.speedMph * MPH_TO_KPH, 1);
-      els.speedUnit.textContent = "km/h";
-      els.speedAlt.textContent = "(" + fmt(state.speedMph, 1) + " mph)";
-    }
+    updateSpeedReadout();
     els.inclineValue.textContent = state.inclinePct;
     els.bodyfatValue.textContent = Math.round(state.bodyFatPct);
     els.bodyfatNote.textContent = state.bodyFatTouched ? "" : "(typical estimate)";
+
+    var activeWord = state.rmrEnabled ? "active " : "";
+    els.activeWordEls.forEach(function (el) { el.textContent = activeWord; });
+    els.resultCaption.hidden = !state.rmrEnabled;
 
     els.resultMinutes.textContent = mins >= 100 ? Math.round(mins) : fmt(mins, 1);
     els.statKcalMin.textContent = fmt(kcalMin, 1);
@@ -168,7 +221,7 @@
       return {
         label: p.label,
         type: p.type,
-        minutes: minutesToBurn100Active(p.speed, p.incline, state.weightKg, state.bodyFatPct),
+        minutes: minutesToBurn100(p.speed, p.incline, state.weightKg, state.bodyFatPct, state.rmrEnabled),
         detail: speedLabel(p.speed) + " · " + p.incline + "% incline"
       };
     });
@@ -205,6 +258,8 @@
         gender: state.gender,
         bodyFatPct: state.bodyFatPct,
         bodyFatTouched: state.bodyFatTouched,
+        rmrEnabled: state.rmrEnabled,
+        speedMode: state.speedMode,
         unitSystem: state.unitSystem
       }));
     } catch (e) { /* storage unavailable, ignore */ }
@@ -245,6 +300,12 @@
     });
   }
 
+  function syncModeButtons() {
+    els.modeButtons.forEach(function (b) {
+      b.classList.toggle("active", b.dataset.mode === state.speedMode);
+    });
+  }
+
   function applyUnitSystem(unit) {
     state.unitSystem = unit;
     syncUnitButtons();
@@ -254,11 +315,29 @@
     saveProfile();
   }
 
-  function initUnitToggle() {
+  function applySpeedMode(mode) {
+    state.speedMode = mode;
+    syncModeButtons();
+    render();
+    saveProfile();
+  }
+
+  function applyRmrEnabled(enabled) {
+    state.rmrEnabled = enabled;
+    els.bodyFatPanel.hidden = !enabled;
+    render();
+    saveProfile();
+  }
+
+  function initToggles() {
     els.unitButtons.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        applyUnitSystem(btn.dataset.unit);
-      });
+      btn.addEventListener("click", function () { applyUnitSystem(btn.dataset.unit); });
+    });
+    els.modeButtons.forEach(function (btn) {
+      btn.addEventListener("click", function () { applySpeedMode(btn.dataset.mode); });
+    });
+    els.rmrToggle.addEventListener("change", function () {
+      applyRmrEnabled(els.rmrToggle.checked);
     });
   }
 
@@ -291,6 +370,7 @@
       if (!state.bodyFatTouched) {
         state.bodyFatPct = DEFAULT_BODY_FAT[state.gender];
         els.bodyfat.value = state.bodyFatPct;
+        setRangeFill(els.bodyfat);
       }
       render();
       saveProfile();
@@ -322,8 +402,12 @@
 
     els.gender.value = state.gender;
     syncUnitButtons();
+    syncModeButtons();
     syncWeightInput();
     syncHeightInput();
+
+    els.rmrToggle.checked = state.rmrEnabled;
+    els.bodyFatPanel.hidden = !state.rmrEnabled;
 
     els.bodyfat.value = state.bodyFatPct;
     els.speed.value = state.speedMph;
@@ -332,7 +416,7 @@
     setRangeFill(els.speed);
     setRangeFill(els.incline);
 
-    initUnitToggle();
+    initToggles();
     bindEvents();
     render();
   }
