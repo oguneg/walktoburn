@@ -264,6 +264,29 @@ main {
   font-size: 12px;
 }
 
+.height-ft-in {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.height-ft-in[hidden] {
+  display: none;
+}
+
+.height-ft-in input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+}
+
+.height-ft-in-sep {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .units-row {
   display: flex;
   align-items: center;

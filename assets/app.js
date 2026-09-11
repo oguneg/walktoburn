@@ -27,6 +27,9 @@
     continueToCalc: document.getElementById("continue-to-calc"),
     weight: document.getElementById("weight"),
     height: document.getElementById("height"),
+    heightFtIn: document.getElementById("height-ft-in"),
+    heightFt: document.getElementById("height-ft"),
+    heightIn: document.getElementById("height-in"),
     gender: document.getElementById("gender"),
     weightUnitHint: document.getElementById("weight-unit-hint"),
     heightUnitHint: document.getElementById("height-unit-hint"),
@@ -378,15 +381,17 @@
   }
 
   function syncHeightInput() {
-    if (state.unitSystem === "metric") {
-      els.height.type = "number";
+    var metric = state.unitSystem === "metric";
+    els.height.hidden = !metric;
+    els.heightFtIn.hidden = metric;
+    els.heightUnitHint.textContent = metric ? "cm" : "";
+
+    if (metric) {
       els.height.value = Math.round(state.heightCm);
-      els.heightUnitHint.textContent = "cm";
     } else {
       var fi = cmToFtIn(state.heightCm);
-      els.height.type = "text";
-      els.height.value = fi.ft + "'" + fi.inch + '"';
-      els.heightUnitHint.textContent = "ft/in";
+      els.heightFt.value = fi.ft;
+      els.heightIn.value = fi.inch;
     }
   }
 
@@ -453,19 +458,24 @@
     });
 
     els.height.addEventListener("input", function () {
-      if (state.unitSystem === "metric") {
-        var v = parseFloat(els.height.value);
-        if (isNaN(v) || v <= 0) return;
-        state.heightCm = v;
-      } else {
-        var nums = els.height.value.match(/\d+(\.\d+)?/g) || [];
-        var ft = parseFloat(nums[0]) || 0;
-        var inch = parseFloat(nums[1]) || 0;
-        state.heightCm = ftInToCm(ft, inch);
-      }
+      var v = parseFloat(els.height.value);
+      if (isNaN(v) || v <= 0) return;
+      state.heightCm = v;
       render();
       saveProfile();
     });
+
+    function onHeightFtInChange() {
+      var ft = parseFloat(els.heightFt.value);
+      var inch = parseFloat(els.heightIn.value);
+      if (isNaN(ft) || ft < 0) ft = 0;
+      if (isNaN(inch) || inch < 0) inch = 0;
+      state.heightCm = ftInToCm(ft, inch);
+      render();
+      saveProfile();
+    }
+    els.heightFt.addEventListener("input", onHeightFtInChange);
+    els.heightIn.addEventListener("input", onHeightFtInChange);
 
     els.gender.addEventListener("change", function () {
       state.gender = els.gender.value;

@@ -41,6 +41,12 @@
       <div class="field">
         <label for="height">Height <span class="unit-hint" id="height-unit-hint">cm</span></label>
         <input type="number" id="height" min="120" max="230" value="170" inputmode="decimal">
+        <div class="height-ft-in" id="height-ft-in" hidden>
+          <input type="number" id="height-ft" min="3" max="8" value="5" inputmode="numeric" aria-label="Feet">
+          <span class="height-ft-in-sep">ft</span>
+          <input type="number" id="height-in" min="0" max="11" value="7" inputmode="numeric" aria-label="Inches">
+          <span class="height-ft-in-sep">in</span>
+        </div>
       </div>
 
       <div class="field">
