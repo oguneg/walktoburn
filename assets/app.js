@@ -52,6 +52,8 @@
     statMets: document.getElementById("stat-mets"),
     statDistance: document.getElementById("stat-distance"),
     statSteps: document.getElementById("stat-steps"),
+    statFatUnit: document.getElementById("stat-fatunit"),
+    statFatUnitLabel: document.getElementById("stat-fatunit-label"),
     compareChart: document.getElementById("compare-chart")
   };
 
@@ -77,6 +79,12 @@
 
   var MPH_TO_M_PER_MIN = 26.8224;
   var MPH_TO_KPH = 1.60934;
+
+  // Standard, widely-cited approximations for the energy content of body
+  // fat — not derived from each other, just the two commonly quoted figures
+  // for each unit.
+  var KCAL_PER_KG_FAT = 7700;
+  var KCAL_PER_LB_FAT = 3500;
 
   function detectUnitSystem() {
     try {
@@ -147,6 +155,15 @@
     var ss = Math.round((minPerUnit - mm) * 60);
     if (ss === 60) { mm += 1; ss = 0; }
     return mm + ":" + (ss < 10 ? "0" : "") + ss;
+  }
+
+  // Total hours formatted as "H:MM" — a stopwatch-style duration, not a
+  // clock, so it isn't capped at 24.
+  function hoursMinutesString(totalHoursFloat) {
+    var hh = Math.floor(totalHoursFloat);
+    var mm = Math.round((totalHoursFloat - hh) * 60);
+    if (mm === 60) { hh += 1; mm = 0; }
+    return hh + ":" + (mm < 10 ? "0" : "") + mm;
   }
 
   // Reveals a step-locked section with a fade-in and scrolls it into view.
@@ -251,6 +268,14 @@
         : Math.round(distanceMeters) + " m";
     }
     els.statSteps.textContent = Math.round(steps).toLocaleString();
+
+    if (state.unitSystem === "imperial") {
+      els.statFatUnit.textContent = hoursMinutesString(KCAL_PER_LB_FAT / kcalHour);
+      els.statFatUnitLabel.textContent = "hrs/lb fat";
+    } else {
+      els.statFatUnit.textContent = hoursMinutesString(KCAL_PER_KG_FAT / kcalHour);
+      els.statFatUnitLabel.textContent = "hrs/kg fat";
+    }
 
     renderCompare();
   }
