@@ -63,8 +63,14 @@
     { label: "Steep hill", speed: 2.0, incline: 15, type: "incline" }
   ];
 
-  var SPEED_TICKS_MPH = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  var SPEED_TICKS_KPH = [2, 4, 6, 8, 10, 12, 14];
+  // The speed slider's native min/max switch to these clean, unit-appropriate
+  // bounds whenever the unit system changes — rather than always keeping one
+  // fixed mph-based range and converting it, which made the metric ticks
+  // (and the slider's actual endpoints) drift away from round km/h numbers.
+  var SPEED_BOUNDS = {
+    imperial: { min: 1, max: 9, ticks: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    metric: { min: 2, max: 14, ticks: [2, 4, 6, 8, 10, 12, 14] }
+  };
 
   var MPH_TO_M_PER_MIN = 26.8224;
   var MPH_TO_KPH = 1.60934;
@@ -150,6 +156,24 @@
     return fmt(speedMph * MPH_TO_KPH, 1) + " km/h";
   }
 
+  // Rewrites the speed <input>'s min/max/step/value to the clean bounds for
+  // the current unit system, converting (and clamping) the canonical mph
+  // value as needed. Called on load and whenever the unit system changes —
+  // never on every render, so it doesn't fight the user mid-drag.
+  function syncSpeedSliderBounds() {
+    var bounds = state.unitSystem === "imperial" ? SPEED_BOUNDS.imperial : SPEED_BOUNDS.metric;
+    var displayVal = state.unitSystem === "imperial" ? state.speedMph : state.speedMph * MPH_TO_KPH;
+    displayVal = Math.min(Math.max(displayVal, bounds.min), bounds.max);
+
+    els.speed.min = bounds.min;
+    els.speed.max = bounds.max;
+    els.speed.step = "0.1";
+    els.speed.value = displayVal;
+
+    state.speedMph = state.unitSystem === "imperial" ? displayVal : displayVal / MPH_TO_KPH;
+    setRangeFill(els.speed);
+  }
+
   function updateSpeedReadout() {
     var mph = state.speedMph;
     var kph = mph * MPH_TO_KPH;
@@ -165,8 +189,8 @@
 
     els.speedLabel.textContent = state.speedMode === "speed" ? "Speed" : "Pace";
 
-    var anchors = imperial ? SPEED_TICKS_MPH : SPEED_TICKS_KPH;
-    els.speedTicks.innerHTML = anchors.map(function (a) {
+    var bounds = imperial ? SPEED_BOUNDS.imperial : SPEED_BOUNDS.metric;
+    els.speedTicks.innerHTML = bounds.ticks.map(function (a) {
       var label = state.speedMode === "speed" ? fmt(a, 0) : paceString(a);
       return "<span>" + label + "</span>";
     }).join("");
@@ -310,6 +334,7 @@
     syncUnitButtons();
     syncWeightInput();
     syncHeightInput();
+    syncSpeedSliderBounds();
     render();
     saveProfile();
   }
@@ -384,7 +409,8 @@
     });
 
     els.speed.addEventListener("input", function () {
-      state.speedMph = parseFloat(els.speed.value);
+      var raw = parseFloat(els.speed.value);
+      state.speedMph = state.unitSystem === "imperial" ? raw : raw / MPH_TO_KPH;
       setRangeFill(els.speed);
       render();
     });
@@ -416,13 +442,12 @@
     els.bodyFatPanel.hidden = !state.rmrEnabled;
 
     els.bodyfat.value = state.bodyFatPct;
-    els.speed.value = state.speedMph;
     els.incline.value = state.inclinePct;
     els.target.value = state.calorieTarget;
     setRangeFill(els.bodyfat);
-    setRangeFill(els.speed);
     setRangeFill(els.incline);
     setRangeFill(els.target);
+    syncSpeedSliderBounds();
 
     initToggles();
     bindEvents();
