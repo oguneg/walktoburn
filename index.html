@@ -20,30 +20,26 @@
 
 <main>
 
+  <section class="unit-select" id="unit-select">
+    <span class="unit-select-label">Units</span>
+    <div class="unit-toggle-lg" data-target="unit-system">
+      <button type="button" class="unit-btn-lg" data-unit="metric">Metric<span class="unit-sub">kg · cm</span></button>
+      <button type="button" class="unit-btn-lg" data-unit="imperial">Imperial<span class="unit-sub">lb · ft/in</span></button>
+    </div>
+  </section>
+
   <section class="card" id="profile">
     <h2><span class="step">1</span> Your profile</h2>
     <div class="field-grid">
 
       <div class="field">
-        <label for="weight">Weight</label>
-        <div class="input-unit">
-          <input type="number" id="weight" min="30" max="250" value="70" inputmode="decimal">
-          <div class="unit-toggle" data-target="weight-unit">
-            <button type="button" class="unit-btn active" data-unit="kg">kg</button>
-            <button type="button" class="unit-btn" data-unit="lb">lb</button>
-          </div>
-        </div>
+        <label for="weight">Weight <span class="unit-hint" id="weight-unit-hint">kg</span></label>
+        <input type="number" id="weight" min="30" max="250" value="70" inputmode="decimal">
       </div>
 
       <div class="field">
-        <label for="height">Height</label>
-        <div class="input-unit">
-          <input type="number" id="height" min="120" max="230" value="170" inputmode="decimal">
-          <div class="unit-toggle" data-target="height-unit">
-            <button type="button" class="unit-btn active" data-unit="cm">cm</button>
-            <button type="button" class="unit-btn" data-unit="ft">ft/in</button>
-          </div>
-        </div>
+        <label for="height">Height <span class="unit-hint" id="height-unit-hint">cm</span></label>
+        <input type="number" id="height" min="120" max="230" value="170" inputmode="decimal">
       </div>
 
       <div class="field">
@@ -56,6 +52,18 @@
       </div>
 
     </div>
+
+    <div class="slider-field body-fat-field">
+      <div class="slider-label-row">
+        <label for="bodyfat">Body fat %</label>
+        <span class="slider-value"><span id="bodyfat-value">20</span>% <span class="muted" id="bodyfat-note">(typical estimate)</span></span>
+      </div>
+      <input type="range" id="bodyfat" min="5" max="45" step="1" value="20">
+      <div class="slider-ticks">
+        <span>lean</span><span>average</span><span>higher</span>
+      </div>
+      <p class="field-help">Used to estimate your resting burn rate, so the result reflects calories the walk itself adds — not calories you'd burn anyway. Not sure? The default is a reasonable population estimate.</p>
+    </div>
   </section>
 
   <section class="card" id="controls">
@@ -64,7 +72,7 @@
     <div class="slider-field">
       <div class="slider-label-row">
         <label for="speed">Pace</label>
-        <span class="slider-value"><span id="speed-value">3.0</span> mph <span class="muted" id="speed-kph">(4.8 km/h)</span></span>
+        <span class="slider-value"><span id="speed-value">3.0</span> <span id="speed-unit">mph</span> <span class="muted" id="speed-alt">(4.8 km/h)</span></span>
       </div>
       <input type="range" id="speed" min="1" max="6" step="0.1" value="3.0">
       <div class="slider-ticks">
@@ -85,15 +93,16 @@
   </section>
 
   <section class="card highlight" id="result">
-    <h2><span class="step">3</span> Time to burn 100 calories</h2>
+    <h2><span class="step">3</span> Time to burn 100 active calories</h2>
     <div class="result-main">
       <span class="result-number" id="result-minutes">—</span>
       <span class="result-unit">minutes</span>
     </div>
+    <p class="result-caption">Calories added by the walk itself, above your resting burn.</p>
     <div class="result-sub-grid">
       <div class="stat">
         <span class="stat-value" id="stat-kcalmin">—</span>
-        <span class="stat-label">kcal / min</span>
+        <span class="stat-label">active kcal / min</span>
       </div>
       <div class="stat">
         <span class="stat-value" id="stat-mets">—</span>
@@ -112,7 +121,7 @@
 
   <section class="card" id="compare">
     <h2><span class="step">4</span> How your walk compares</h2>
-    <p class="section-note">Same 100 calories, seven different ways to get there. Shorter bar = faster burn.</p>
+    <p class="section-note">Same 100 active calories, seven different ways to get there. Shorter bar = faster burn.</p>
     <div id="compare-chart" class="compare-chart"></div>
     <div class="legend">
       <span class="legend-item"><i class="dot dot-you"></i> Your walk</span>
@@ -143,7 +152,7 @@
 </main>
 
 <footer>
-  <p>Estimates use the ACSM walking/running metabolic equations. Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
+  <p>Estimates use the ACSM walking/running metabolic equations for exercise cost and the Katch-McArdle formula (via body fat %) for resting burn. Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
   <p class="repo-link"><a href="https://github.com/oguneg/walktoburn" target="_blank" rel="noopener">View on GitHub</a></p>
 </footer>
 
