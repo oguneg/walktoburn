@@ -15,6 +15,7 @@
     speedMph: 3.0,
     speedMode: "speed",
     inclinePct: 0,
+    calorieTarget: 100,
     unitSystem: detectUnitSystem()
   };
 
@@ -31,20 +32,21 @@
     bodyfat: document.getElementById("bodyfat"),
     bodyfatValue: document.getElementById("bodyfat-value"),
     bodyfatNote: document.getElementById("bodyfat-note"),
+    restingKcalHour: document.getElementById("resting-kcalhour"),
+    restingKcalDay: document.getElementById("resting-kcalday"),
     speed: document.getElementById("speed"),
     speedLabel: document.getElementById("speed-label"),
     incline: document.getElementById("incline"),
     speedValue: document.getElementById("speed-value"),
     speedUnit: document.getElementById("speed-unit"),
-    speedAlt: document.getElementById("speed-alt"),
-    speedTickMin: document.getElementById("speed-tick-min"),
-    speedTickMid: document.getElementById("speed-tick-mid"),
-    speedTickMax: document.getElementById("speed-tick-max"),
+    speedTicks: document.getElementById("speed-ticks"),
     inclineValue: document.getElementById("incline-value"),
+    target: document.getElementById("target"),
+    targetValue: document.getElementById("target-value"),
+    resultTarget: document.getElementById("result-target"),
+    compareTarget: document.getElementById("compare-target"),
     resultMinutes: document.getElementById("result-minutes"),
-    resultCaption: document.getElementById("result-caption"),
-    activeWordEls: document.querySelectorAll(".active-word"),
-    statKcalMin: document.getElementById("stat-kcalmin"),
+    resultKcalH: document.getElementById("result-kcalh"),
     statMets: document.getElementById("stat-mets"),
     statDistance: document.getElementById("stat-distance"),
     statSteps: document.getElementById("stat-steps"),
@@ -61,11 +63,8 @@
     { label: "Steep hill", speed: 2.0, incline: 15, type: "incline" }
   ];
 
-  var SPEED_TICK_ANCHORS = [
-    { mph: 1.0, word: "stroll" },
-    { mph: 3.5, word: "brisk" },
-    { mph: 6.0, word: "jog" }
-  ];
+  var SPEED_TICKS_MPH = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  var SPEED_TICKS_KPH = [2, 4, 6, 8, 10, 12, 14];
 
   var MPH_TO_M_PER_MIN = 26.8224;
   var MPH_TO_KPH = 1.60934;
@@ -79,6 +78,9 @@
     return "metric";
   }
 
+  // ACSM walking/running metabolic equations. The running branch kicks in
+  // above 5 mph, so extending the speed slider into jogging territory
+  // still uses a formula that's actually validated for that range.
   function vo2MlPerKgMin(speedMph, inclinePct) {
     var speedMPerMin = speedMph * MPH_TO_M_PER_MIN;
     var grade = inclinePct / 100;
@@ -88,27 +90,21 @@
     return 3.5 + 0.2 * speedMPerMin + 0.9 * speedMPerMin * grade;
   }
 
-  function grossKcalPerMin(speedMph, inclinePct, weightKg) {
+  function kcalPerMin(speedMph, inclinePct, weightKg) {
     var vo2 = vo2MlPerKgMin(speedMph, inclinePct);
     return (vo2 * weightKg) / 200;
   }
 
-  // Katch-McArdle resting metabolic rate — uses lean body mass (from body fat %)
-  // instead of age, so it stays accurate without asking for another field.
+  function minutesToBurnTarget(speedMph, inclinePct, weightKg, targetKcal) {
+    return targetKcal / kcalPerMin(speedMph, inclinePct, weightKg);
+  }
+
+  // Katch-McArdle resting metabolic rate — uses lean body mass (from body
+  // fat %) instead of age. Shown as a standalone reference figure only;
+  // it never factors into the walking calculations above.
   function restingKcalPerDay(weightKg, bodyFatPct) {
     var leanMassKg = weightKg * (1 - bodyFatPct / 100);
     return 370 + 21.6 * leanMassKg;
-  }
-
-  function resultKcalPerMin(speedMph, inclinePct, weightKg, bodyFatPct, rmrEnabled) {
-    var gross = grossKcalPerMin(speedMph, inclinePct, weightKg);
-    if (!rmrEnabled) return gross;
-    var resting = restingKcalPerDay(weightKg, bodyFatPct) / 1440;
-    return Math.max(gross - resting, 0.1);
-  }
-
-  function minutesToBurn100(speedMph, inclinePct, weightKg, bodyFatPct, rmrEnabled) {
-    return 100 / resultKcalPerMin(speedMph, inclinePct, weightKg, bodyFatPct, rmrEnabled);
   }
 
   function stepLengthMeters(heightCm, gender) {
@@ -162,45 +158,45 @@
     if (state.speedMode === "speed") {
       els.speedValue.textContent = imperial ? fmt(mph, 1) : fmt(kph, 1);
       els.speedUnit.textContent = imperial ? "mph" : "km/h";
-      els.speedAlt.textContent = imperial ? "(" + fmt(kph, 1) + " km/h)" : "(" + fmt(mph, 1) + " mph)";
     } else {
       els.speedValue.textContent = imperial ? paceString(mph) : paceString(kph);
       els.speedUnit.textContent = imperial ? "/mi" : "/km";
-      els.speedAlt.textContent = imperial ? "(" + paceString(kph) + " /km)" : "(" + paceString(mph) + " /mi)";
     }
 
     els.speedLabel.textContent = state.speedMode === "speed" ? "Speed" : "Pace";
 
-    SPEED_TICK_ANCHORS.forEach(function (anchor, i) {
-      var target = [els.speedTickMin, els.speedTickMid, els.speedTickMax][i];
-      var value;
-      if (state.speedMode === "speed") {
-        value = imperial ? fmt(anchor.mph, 1) : fmt(anchor.mph * MPH_TO_KPH, 1);
-      } else {
-        value = imperial ? paceString(anchor.mph) : paceString(anchor.mph * MPH_TO_KPH);
-      }
-      target.textContent = value + " " + anchor.word;
-    });
+    var anchors = imperial ? SPEED_TICKS_MPH : SPEED_TICKS_KPH;
+    els.speedTicks.innerHTML = anchors.map(function (a) {
+      var label = state.speedMode === "speed" ? fmt(a, 0) : paceString(a);
+      return "<span>" + label + "</span>";
+    }).join("");
   }
 
   function render() {
-    var mins = minutesToBurn100(state.speedMph, state.inclinePct, state.weightKg, state.bodyFatPct, state.rmrEnabled);
-    var kcalMin = resultKcalPerMin(state.speedMph, state.inclinePct, state.weightKg, state.bodyFatPct, state.rmrEnabled);
+    var mins = minutesToBurnTarget(state.speedMph, state.inclinePct, state.weightKg, state.calorieTarget);
+    var kcalMin = kcalPerMin(state.speedMph, state.inclinePct, state.weightKg);
+    var kcalHour = kcalMin * 60;
     var mets = vo2MlPerKgMin(state.speedMph, state.inclinePct) / 3.5;
     var distanceMeters = state.speedMph * MPH_TO_M_PER_MIN * mins;
     var steps = distanceMeters / stepLengthMeters(state.heightCm, state.gender);
 
     updateSpeedReadout();
     els.inclineValue.textContent = state.inclinePct;
+
+    els.targetValue.textContent = state.calorieTarget;
+    els.resultTarget.textContent = state.calorieTarget;
+    els.compareTarget.textContent = state.calorieTarget;
+
     els.bodyfatValue.textContent = Math.round(state.bodyFatPct);
     els.bodyfatNote.textContent = state.bodyFatTouched ? "" : "(typical estimate)";
-
-    var activeWord = state.rmrEnabled ? "active " : "";
-    els.activeWordEls.forEach(function (el) { el.textContent = activeWord; });
-    els.resultCaption.hidden = !state.rmrEnabled;
+    if (state.rmrEnabled) {
+      var restingDay = restingKcalPerDay(state.weightKg, state.bodyFatPct);
+      els.restingKcalDay.textContent = Math.round(restingDay).toLocaleString();
+      els.restingKcalHour.textContent = Math.round(restingDay / 24);
+    }
 
     els.resultMinutes.textContent = mins >= 100 ? Math.round(mins) : fmt(mins, 1);
-    els.statKcalMin.textContent = fmt(kcalMin, 1);
+    els.resultKcalH.textContent = Math.round(kcalHour).toLocaleString();
     els.statMets.textContent = fmt(mets, 1);
 
     if (state.unitSystem === "imperial") {
@@ -218,19 +214,21 @@
 
   function renderCompare(yourMinutes) {
     var rows = PRESETS.map(function (p) {
+      var kcalHour = kcalPerMin(p.speed, p.incline, state.weightKg) * 60;
       return {
         label: p.label,
         type: p.type,
-        minutes: minutesToBurn100(p.speed, p.incline, state.weightKg, state.bodyFatPct, state.rmrEnabled),
-        detail: speedLabel(p.speed) + " · " + p.incline + "% incline"
+        minutes: minutesToBurnTarget(p.speed, p.incline, state.weightKg, state.calorieTarget),
+        detail: speedLabel(p.speed) + " · " + p.incline + "% incline · " + Math.round(kcalHour) + " kcal/h"
       };
     });
 
+    var yourKcalHour = kcalPerMin(state.speedMph, state.inclinePct, state.weightKg) * 60;
     rows.push({
       label: "Your walk",
       type: "you",
       minutes: yourMinutes,
-      detail: speedLabel(state.speedMph) + " · " + state.inclinePct + "% incline",
+      detail: speedLabel(state.speedMph) + " · " + state.inclinePct + "% incline · " + Math.round(yourKcalHour) + " kcal/h",
       isYou: true
     });
 
@@ -260,6 +258,7 @@
         bodyFatTouched: state.bodyFatTouched,
         rmrEnabled: state.rmrEnabled,
         speedMode: state.speedMode,
+        calorieTarget: state.calorieTarget,
         unitSystem: state.unitSystem
       }));
     } catch (e) { /* storage unavailable, ignore */ }
@@ -395,6 +394,13 @@
       setRangeFill(els.incline);
       render();
     });
+
+    els.target.addEventListener("input", function () {
+      state.calorieTarget = parseFloat(els.target.value);
+      setRangeFill(els.target);
+      render();
+      saveProfile();
+    });
   }
 
   function init() {
@@ -412,9 +418,11 @@
     els.bodyfat.value = state.bodyFatPct;
     els.speed.value = state.speedMph;
     els.incline.value = state.inclinePct;
+    els.target.value = state.calorieTarget;
     setRangeFill(els.bodyfat);
     setRangeFill(els.speed);
     setRangeFill(els.incline);
+    setRangeFill(els.target);
 
     initToggles();
     bindEvents();
