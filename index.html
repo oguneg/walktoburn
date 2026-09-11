@@ -96,9 +96,8 @@
         <label for="speed" id="speed-label">Speed</label>
         <span class="slider-value"><span id="speed-value">3.0</span> <span id="speed-unit">mph</span></span>
       </div>
-      <input type="range" id="speed" min="1" max="9" step="0.1" value="3.0">
+      <input type="range" id="speed" min="1" max="5" step="0.1" value="3.0">
       <div class="slider-ticks" id="speed-ticks"></div>
-      <p class="field-help gait-note" id="gait-note" hidden>Above 5 mph the calculation switches from a walking to a running energy-cost formula — running is metabolically more efficient than walking at that pace, which is why the numbers jump here rather than climbing smoothly.</p>
     </div>
 
     <div class="slider-field">
@@ -159,7 +158,6 @@
       <span class="legend-item"><i class="dot dot-you"></i> Your walk</span>
       <span class="legend-item"><i class="dot dot-incline"></i> Incline</span>
       <span class="legend-item"><i class="dot dot-flat"></i> Flat</span>
-      <span class="legend-item"><i class="dot dot-jog"></i> Jog</span>
     </div>
   </section>
 
@@ -186,7 +184,7 @@
 </main>
 
 <footer>
-  <p>Walking and time estimates use the standard ACSM walking/running metabolic equations, switching formulas at 5 mph (a widely used gait-transition point) — expect a jump in the numbers right at that speed, not a smooth ramp. The optional resting burn figure uses the Katch-McArdle formula (via body fat %) and is shown for reference only. Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
+  <p>Walking and time estimates use the standard ACSM walking metabolic equation. The optional resting burn figure uses the Katch-McArdle formula (via body fat %) and is shown for reference only. Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
   <p class="repo-link"><a href="https://github.com/oguneg/walktoburn" target="_blank" rel="noopener">View on GitHub</a></p>
 </footer>
 

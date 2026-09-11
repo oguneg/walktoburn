@@ -11,7 +11,6 @@
   --accent-strong: #b8480e;
   --incline: #2f7a4f;
   --flat: #8a8578;
-  --jog: #c1443b;
   --you: #1c6dd0;
 
   --card-radius: 18px;
@@ -29,7 +28,6 @@
     --accent-strong: #ff9a45;
     --incline: #4fae7c;
     --flat: #a29d8c;
-    --jog: #e2685e;
     --you: #5b9bf0;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 28px rgba(0, 0, 0, 0.35);
   }
@@ -324,10 +322,6 @@ main {
   background: var(--accent-strong);
 }
 
-.gait-note {
-  color: var(--accent-strong);
-}
-
 .unit-toggle-lg {
   display: flex;
   border: 1px solid var(--border);
@@ -582,7 +576,6 @@ input[type="range"]::-moz-range-thumb {
 
 .compare-bar.type-incline { background: var(--incline); }
 .compare-bar.type-flat { background: var(--flat); }
-.compare-bar.type-jog { background: var(--jog); }
 .compare-bar.type-you { background: var(--you); }
 
 .compare-rate {
@@ -620,7 +613,6 @@ input[type="range"]::-moz-range-thumb {
 
 .dot-incline { background: var(--incline); }
 .dot-flat { background: var(--flat); }
-.dot-jog { background: var(--jog); }
 .dot-you { background: var(--you); }
 
 .why-grid {

@@ -25,7 +25,6 @@
     modeButtons: document.querySelectorAll('[data-target="speed-mode"] .mode-btn'),
     calcGroup: document.getElementById("calc-group"),
     continueToCalc: document.getElementById("continue-to-calc"),
-    gaitNote: document.getElementById("gait-note"),
     weight: document.getElementById("weight"),
     height: document.getElementById("height"),
     gender: document.getElementById("gender"),
@@ -60,7 +59,6 @@
     { label: "Slow stroll", speed: 2.0, incline: 0, type: "flat" },
     { label: "Brisk walk", speed: 3.5, incline: 0, type: "flat" },
     { label: "Power walk", speed: 4.5, incline: 0, type: "flat" },
-    { label: "Light jog", speed: 5.5, incline: 0, type: "jog" },
     { label: "Easy hill", speed: 2.0, incline: 6, type: "incline" },
     { label: "Steady hill", speed: 2.5, incline: 10, type: "incline" },
     { label: "Steep hill", speed: 2.0, incline: 15, type: "incline" }
@@ -70,9 +68,11 @@
   // bounds whenever the unit system changes — rather than always keeping one
   // fixed mph-based range and converting it, which made the metric ticks
   // (and the slider's actual endpoints) drift away from round km/h numbers.
+  // Capped at a brisk-walk ceiling (well under the walk/run gait transition)
+  // since this is a walking calculator, not a running one.
   var SPEED_BOUNDS = {
-    imperial: { min: 1, max: 9, ticks: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
-    metric: { min: 2, max: 14, ticks: [2, 4, 6, 8, 10, 12, 14] }
+    imperial: { min: 1, max: 5, ticks: [1, 2, 3, 4, 5] },
+    metric: { min: 2, max: 8, ticks: [2, 4, 6, 8] }
   };
 
   var MPH_TO_M_PER_MIN = 26.8224;
@@ -87,27 +87,22 @@
     return "metric";
   }
 
-  // ACSM walking/running metabolic equations. The running branch kicks in
-  // above 5 mph, so extending the speed slider into jogging territory
-  // still uses a formula that's actually validated for that range.
+  // ACSM walking metabolic equation. The speed slider is capped at a brisk-
+  // walk ceiling (see SPEED_BOUNDS), so this is the only formula in play —
+  // no running branch, no gait-transition jump to explain.
   function vo2MlPerKgMin(speedMph, inclinePct) {
     var speedMPerMin = speedMph * MPH_TO_M_PER_MIN;
     var grade = inclinePct / 100;
-    if (speedMph < 5) {
-      return 3.5 + 0.1 * speedMPerMin + 1.8 * speedMPerMin * grade;
-    }
-    return 3.5 + 0.2 * speedMPerMin + 0.9 * speedMPerMin * grade;
+    return 3.5 + 0.1 * speedMPerMin + 1.8 * speedMPerMin * grade;
   }
 
   // Inverse of vo2MlPerKgMin: given a speed and a target VO2, solves for the
-  // incline (%) needed to hit it. Used to find "same burn, slower pace"
+  // incline (%) needed to hit it. Used to find "similar burn, slower pace"
   // alternatives — negative or >25% results mean that speed can't reach the
   // target within the slider's own range, so callers should discard those.
   function inclineForTargetVO2(speedMph, targetVO2) {
     var speedMPerMin = speedMph * MPH_TO_M_PER_MIN;
-    var a = speedMph < 5 ? 0.1 : 0.2;
-    var b = speedMph < 5 ? 1.8 : 0.9;
-    var grade = (targetVO2 - 3.5 - a * speedMPerMin) / (b * speedMPerMin);
+    var grade = (targetVO2 - 3.5 - 0.1 * speedMPerMin) / (1.8 * speedMPerMin);
     return grade * 100;
   }
 
@@ -230,7 +225,6 @@
     var steps = distanceMeters / stepLengthMeters(state.heightCm, state.gender);
 
     updateSpeedReadout();
-    els.gaitNote.hidden = state.speedMph < 5;
     els.inclineValue.textContent = state.inclinePct;
 
     els.targetValue.textContent = state.calorieTarget;
