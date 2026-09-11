@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WalkToBurn — Slow and steep beats fast and flat</title>
+<meta name="description" content="See how pace and incline change how long it takes to burn 100 calories. A slow, steep walk often beats a fast flat one — and it's easier to sustain.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">walktoburn</p>
+    <h1>Slow and steep<br>beats fast and flat.</h1>
+    <p class="subtitle">Dial in your pace and incline to see how long it takes to burn 100 calories — and why a gentler, steeper walk is often the smarter, more sustainable burn.</p>
+  </div>
+</header>
+
+<main>
+
+  <section class="card" id="profile">
+    <h2><span class="step">1</span> Your profile</h2>
+    <div class="field-grid">
+
+      <div class="field">
+        <label for="weight">Weight</label>
+        <div class="input-unit">
+          <input type="number" id="weight" min="30" max="250" value="70" inputmode="decimal">
+          <div class="unit-toggle" data-target="weight-unit">
+            <button type="button" class="unit-btn active" data-unit="kg">kg</button>
+            <button type="button" class="unit-btn" data-unit="lb">lb</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="height">Height</label>
+        <div class="input-unit">
+          <input type="number" id="height" min="120" max="230" value="170" inputmode="decimal">
+          <div class="unit-toggle" data-target="height-unit">
+            <button type="button" class="unit-btn active" data-unit="cm">cm</button>
+            <button type="button" class="unit-btn" data-unit="ft">ft/in</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="gender">Gender</label>
+        <select id="gender">
+          <option value="female">Female</option>
+          <option value="male" selected>Male</option>
+          <option value="other">Other / prefer not to say</option>
+        </select>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="card" id="controls">
+    <h2><span class="step">2</span> Pace &amp; incline</h2>
+
+    <div class="slider-field">
+      <div class="slider-label-row">
+        <label for="speed">Pace</label>
+        <span class="slider-value"><span id="speed-value">3.0</span> mph <span class="muted" id="speed-kph">(4.8 km/h)</span></span>
+      </div>
+      <input type="range" id="speed" min="1" max="6" step="0.1" value="3.0">
+      <div class="slider-ticks">
+        <span>1.0 stroll</span><span>3.5 brisk</span><span>6.0 jog</span>
+      </div>
+    </div>
+
+    <div class="slider-field">
+      <div class="slider-label-row">
+        <label for="incline">Incline</label>
+        <span class="slider-value"><span id="incline-value">0</span>%</span>
+      </div>
+      <input type="range" id="incline" min="0" max="15" step="1" value="0">
+      <div class="slider-ticks">
+        <span>0% flat</span><span>7% hill</span><span>15% steep</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card highlight" id="result">
+    <h2><span class="step">3</span> Time to burn 100 calories</h2>
+    <div class="result-main">
+      <span class="result-number" id="result-minutes">—</span>
+      <span class="result-unit">minutes</span>
+    </div>
+    <div class="result-sub-grid">
+      <div class="stat">
+        <span class="stat-value" id="stat-kcalmin">—</span>
+        <span class="stat-label">kcal / min</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-mets">—</span>
+        <span class="stat-label">METs</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-distance">—</span>
+        <span class="stat-label">distance</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-steps">—</span>
+        <span class="stat-label">steps</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="compare">
+    <h2><span class="step">4</span> How your walk compares</h2>
+    <p class="section-note">Same 100 calories, seven different ways to get there. Shorter bar = faster burn.</p>
+    <div id="compare-chart" class="compare-chart"></div>
+    <div class="legend">
+      <span class="legend-item"><i class="dot dot-you"></i> Your walk</span>
+      <span class="legend-item"><i class="dot dot-incline"></i> Incline</span>
+      <span class="legend-item"><i class="dot dot-flat"></i> Flat</span>
+      <span class="legend-item"><i class="dot dot-jog"></i> Jog</span>
+    </div>
+  </section>
+
+  <section class="card" id="why">
+    <h2>Why go slow and steep?</h2>
+    <div class="why-grid">
+      <div class="why-item">
+        <h3>It's faster than it looks</h3>
+        <p>Adding incline raises your calorie burn rate more than adding speed does. A slow 2 mph walk at 12% incline often burns 100 calories quicker than a brisk 4 mph walk on the flat.</p>
+      </div>
+      <div class="why-item">
+        <h3>It's easier on your joints</h3>
+        <p>Lower speed means less impact per step. Incline shifts the work to your muscles instead of your joints — you can keep this up day after day.</p>
+      </div>
+      <div class="why-item">
+        <h3>It's actually sustainable</h3>
+        <p>You can hold a slow incline pace for a long time without redlining. Consistency beats intensity — a burn you repeat beats a burn you dread.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Estimates use the ACSM walking/running metabolic equations. Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
+  <p class="repo-link"><a href="https://github.com/oguneg/walktoburn" target="_blank" rel="noopener">View on GitHub</a></p>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
