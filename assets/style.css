@@ -286,6 +286,50 @@ main {
   letter-spacing: 0.06em;
 }
 
+.step-locked {
+  display: none !important;
+}
+
+@keyframes stepReveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-reveal {
+  animation: stepReveal 0.45s ease both;
+}
+
+.calc-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.continue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 22px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.continue-btn:hover {
+  background: var(--accent-strong);
+}
+
+.gait-note {
+  color: var(--accent-strong);
+}
+
 .unit-toggle-lg {
   display: flex;
   border: 1px solid var(--border);

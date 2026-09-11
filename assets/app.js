@@ -16,12 +16,17 @@
     speedMode: "speed",
     inclinePct: 0,
     calorieTarget: 100,
-    unitSystem: detectUnitSystem()
+    unitSystem: detectUnitSystem(),
+    onboarded: false
   };
 
   var els = {
     unitButtons: document.querySelectorAll('[data-target="unit-system"] .unit-btn-lg'),
     modeButtons: document.querySelectorAll('[data-target="speed-mode"] .mode-btn'),
+    profileSection: document.getElementById("profile"),
+    calcGroup: document.getElementById("calc-group"),
+    continueToCalc: document.getElementById("continue-to-calc"),
+    gaitNote: document.getElementById("gait-note"),
     weight: document.getElementById("weight"),
     height: document.getElementById("height"),
     gender: document.getElementById("gender"),
@@ -139,6 +144,16 @@
     return mm + ":" + (ss < 10 ? "0" : "") + ss;
   }
 
+  // Reveals a step-locked section with a fade-in and scrolls it into view.
+  // No-ops if the section is already unlocked, so it's safe to call from
+  // handlers that fire repeatedly (e.g. re-picking a unit system).
+  function unlockSection(el) {
+    if (!el.classList.contains("step-locked")) return;
+    el.classList.remove("step-locked");
+    el.classList.add("step-reveal");
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function setRangeFill(input) {
     var min = parseFloat(input.min), max = parseFloat(input.max), val = parseFloat(input.value);
     var pct = ((val - min) / (max - min)) * 100;
@@ -205,6 +220,7 @@
     var steps = distanceMeters / stepLengthMeters(state.heightCm, state.gender);
 
     updateSpeedReadout();
+    els.gaitNote.hidden = state.speedMph < 5;
     els.inclineValue.textContent = state.inclinePct;
 
     els.targetValue.textContent = state.calorieTarget;
@@ -283,7 +299,8 @@
         rmrEnabled: state.rmrEnabled,
         speedMode: state.speedMode,
         calorieTarget: state.calorieTarget,
-        unitSystem: state.unitSystem
+        unitSystem: state.unitSystem,
+        onboarded: state.onboarded
       }));
     } catch (e) { /* storage unavailable, ignore */ }
   }
@@ -335,6 +352,7 @@
     syncWeightInput();
     syncHeightInput();
     syncSpeedSliderBounds();
+    unlockSection(els.profileSection);
     render();
     saveProfile();
   }
@@ -362,6 +380,11 @@
     });
     els.rmrToggle.addEventListener("change", function () {
       applyRmrEnabled(els.rmrToggle.checked);
+    });
+    els.continueToCalc.addEventListener("click", function () {
+      unlockSection(els.calcGroup);
+      state.onboarded = true;
+      saveProfile();
     });
   }
 
@@ -448,6 +471,11 @@
     setRangeFill(els.incline);
     setRangeFill(els.target);
     syncSpeedSliderBounds();
+
+    if (state.onboarded) {
+      els.profileSection.classList.remove("step-locked");
+      els.calcGroup.classList.remove("step-locked");
+    }
 
     initToggles();
     bindEvents();

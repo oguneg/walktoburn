@@ -21,15 +21,15 @@
 <main>
 
   <section class="unit-select" id="unit-select">
-    <span class="unit-select-label">Units</span>
+    <span class="unit-select-label"><span class="step">1</span>Choose your units</span>
     <div class="unit-toggle-lg" data-target="unit-system">
       <button type="button" class="unit-btn-lg" data-unit="metric">Metric<span class="unit-sub">kg · cm</span></button>
       <button type="button" class="unit-btn-lg" data-unit="imperial">Imperial<span class="unit-sub">lb · ft/in</span></button>
     </div>
   </section>
 
-  <section class="card" id="profile">
-    <h2><span class="step">1</span> Your profile</h2>
+  <section class="card step-locked" id="profile">
+    <h2><span class="step">2</span> Your profile</h2>
     <div class="field-grid">
 
       <div class="field">
@@ -75,11 +75,15 @@
       </div>
       <p class="field-help">Estimated resting burn: <strong id="resting-kcalhour">—</strong> kcal/h · <strong id="resting-kcalday">—</strong> kcal/day</p>
     </div>
+
+    <button type="button" class="continue-btn" id="continue-to-calc">Continue to calculator ↓</button>
   </section>
+
+  <div class="calc-group step-locked" id="calc-group">
 
   <section class="card" id="controls">
     <div class="card-header-row">
-      <h2><span class="step">2</span> Pace &amp; incline</h2>
+      <h2><span class="step">3</span> Pace &amp; incline</h2>
       <div class="mode-toggle" data-target="speed-mode">
         <button type="button" class="mode-btn" data-mode="speed">Speed</button>
         <button type="button" class="mode-btn" data-mode="pace">Pace</button>
@@ -93,6 +97,7 @@
       </div>
       <input type="range" id="speed" min="1" max="9" step="0.1" value="3.0">
       <div class="slider-ticks" id="speed-ticks"></div>
+      <p class="field-help gait-note" id="gait-note" hidden>Above 5 mph the calculation switches from a walking to a running energy-cost formula — running is metabolically more efficient than walking at that pace, which is why the numbers jump here rather than climbing smoothly.</p>
     </div>
 
     <div class="slider-field">
@@ -108,7 +113,7 @@
   </section>
 
   <section class="card highlight" id="result">
-    <h2><span class="step">3</span> Time to burn <span id="result-target">100</span> calories</h2>
+    <h2><span class="step">4</span> Time to burn <span id="result-target">100</span> calories</h2>
 
     <div class="slider-field target-field">
       <div class="slider-label-row">
@@ -146,7 +151,7 @@
   </section>
 
   <section class="card" id="compare">
-    <h2><span class="step">4</span> How your walk compares</h2>
+    <h2><span class="step">5</span> How your walk compares</h2>
     <p class="section-note">Same <span id="compare-target">100</span> calories, seven different ways to get there. Shorter bar = faster burn.</p>
     <div id="compare-chart" class="compare-chart"></div>
     <div class="legend">
@@ -175,10 +180,12 @@
     </div>
   </section>
 
+  </div>
+
 </main>
 
 <footer>
-  <p>Walking and time estimates use the ACSM walking/running metabolic equations. The optional resting burn figure uses the Katch-McArdle formula (via body fat %) and is shown for reference only. Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
+  <p>Walking and time estimates use the standard ACSM walking/running metabolic equations, switching formulas at 5 mph (a widely used gait-transition point) — expect a jump in the numbers right at that speed, not a smooth ramp. The optional resting burn figure uses the Katch-McArdle formula (via body fat %) and is shown for reference only. Individual results vary with fitness, terrain, and stride efficiency — treat these numbers as a guide, not a lab measurement.</p>
   <p class="repo-link"><a href="https://github.com/oguneg/walktoburn" target="_blank" rel="noopener">View on GitHub</a></p>
 </footer>
 
