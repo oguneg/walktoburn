@@ -72,7 +72,7 @@
   // since this is a walking calculator, not a running one.
   var SPEED_BOUNDS = {
     imperial: { min: 1, max: 5, ticks: [1, 2, 3, 4, 5] },
-    metric: { min: 2, max: 8, ticks: [2, 4, 6, 8] }
+    metric: { min: 2, max: 8, ticks: [2, 3, 4, 5, 6, 7, 8] }
   };
 
   var MPH_TO_M_PER_MIN = 26.8224;
