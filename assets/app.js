@@ -23,7 +23,6 @@
   var els = {
     unitButtons: document.querySelectorAll('[data-target="unit-system"] .unit-btn-lg'),
     modeButtons: document.querySelectorAll('[data-target="speed-mode"] .mode-btn'),
-    profileSection: document.getElementById("profile"),
     calcGroup: document.getElementById("calc-group"),
     continueToCalc: document.getElementById("continue-to-calc"),
     gaitNote: document.getElementById("gait-note"),
@@ -49,7 +48,6 @@
     target: document.getElementById("target"),
     targetValue: document.getElementById("target-value"),
     resultTarget: document.getElementById("result-target"),
-    compareTarget: document.getElementById("compare-target"),
     resultMinutes: document.getElementById("result-minutes"),
     resultKcalH: document.getElementById("result-kcalh"),
     statMets: document.getElementById("stat-mets"),
@@ -99,6 +97,18 @@
       return 3.5 + 0.1 * speedMPerMin + 1.8 * speedMPerMin * grade;
     }
     return 3.5 + 0.2 * speedMPerMin + 0.9 * speedMPerMin * grade;
+  }
+
+  // Inverse of vo2MlPerKgMin: given a speed and a target VO2, solves for the
+  // incline (%) needed to hit it. Used to find "same burn, slower pace"
+  // alternatives — negative or >25% results mean that speed can't reach the
+  // target within the slider's own range, so callers should discard those.
+  function inclineForTargetVO2(speedMph, targetVO2) {
+    var speedMPerMin = speedMph * MPH_TO_M_PER_MIN;
+    var a = speedMph < 5 ? 0.1 : 0.2;
+    var b = speedMph < 5 ? 1.8 : 0.9;
+    var grade = (targetVO2 - 3.5 - a * speedMPerMin) / (b * speedMPerMin);
+    return grade * 100;
   }
 
   function kcalPerMin(speedMph, inclinePct, weightKg) {
@@ -225,7 +235,6 @@
 
     els.targetValue.textContent = state.calorieTarget;
     els.resultTarget.textContent = state.calorieTarget;
-    els.compareTarget.textContent = state.calorieTarget;
 
     els.bodyfatValue.textContent = Math.round(state.bodyFatPct);
     els.bodyfatNote.textContent = state.bodyFatTouched ? "" : "(typical estimate)";
@@ -249,40 +258,68 @@
     }
     els.statSteps.textContent = Math.round(steps).toLocaleString();
 
-    renderCompare(mins);
+    renderCompare();
   }
 
-  function renderCompare(yourMinutes) {
+  // Builds a "similar burn rate, slower pace" row: takes the user's current
+  // walk, slows it down by speedFactor, and solves for the incline that
+  // reproduces roughly the same VO2 (and therefore roughly the same kcal/h)
+  // at that slower speed. The incline is rounded to a whole percent to match
+  // what the slider can actually set, so the resulting kcal/h is close to
+  // but not exactly equal to the current walk's — hence "similar," not
+  // "same." Returns null when the slower speed or the required incline
+  // falls outside what the sliders actually support.
+  function buildSimilarBurnRow(label, speedFactor) {
+    var candidateSpeed = Math.round(state.speedMph * speedFactor * 10) / 10;
+    if (candidateSpeed < 1) return null;
+
+    var targetVO2 = vo2MlPerKgMin(state.speedMph, state.inclinePct);
+    var inclinePct = Math.round(inclineForTargetVO2(candidateSpeed, targetVO2));
+    if (inclinePct <= state.inclinePct || inclinePct > 25) return null;
+
+    var kcalHour = kcalPerMin(candidateSpeed, inclinePct, state.weightKg) * 60;
+    return {
+      label: label,
+      type: "incline",
+      kcalHour: kcalHour,
+      detail: speedLabel(candidateSpeed) + " · " + inclinePct + "% incline"
+    };
+  }
+
+  function renderCompare() {
     var rows = PRESETS.map(function (p) {
-      var kcalHour = kcalPerMin(p.speed, p.incline, state.weightKg) * 60;
       return {
         label: p.label,
         type: p.type,
-        minutes: minutesToBurnTarget(p.speed, p.incline, state.weightKg, state.calorieTarget),
-        detail: speedLabel(p.speed) + " · " + p.incline + "% incline · " + Math.round(kcalHour) + " kcal/h"
+        kcalHour: kcalPerMin(p.speed, p.incline, state.weightKg) * 60,
+        detail: speedLabel(p.speed) + " · " + p.incline + "% incline"
       };
     });
 
-    var yourKcalHour = kcalPerMin(state.speedMph, state.inclinePct, state.weightKg) * 60;
     rows.push({
       label: "Your walk",
       type: "you",
-      minutes: yourMinutes,
-      detail: speedLabel(state.speedMph) + " · " + state.inclinePct + "% incline · " + Math.round(yourKcalHour) + " kcal/h",
+      kcalHour: kcalPerMin(state.speedMph, state.inclinePct, state.weightKg) * 60,
+      detail: speedLabel(state.speedMph) + " · " + state.inclinePct + "% incline",
       isYou: true
     });
 
-    rows.sort(function (a, b) { return a.minutes - b.minutes; });
+    var slower = buildSimilarBurnRow("Similar burn, slower", 0.7);
+    var muchSlower = buildSimilarBurnRow("Similar burn, much slower", 0.5);
+    if (slower) rows.push(slower);
+    if (muchSlower) rows.push(muchSlower);
 
-    var maxMinutes = Math.max.apply(null, rows.map(function (r) { return r.minutes; }));
+    rows.sort(function (a, b) { return b.kcalHour - a.kcalHour; });
+
+    var maxKcalHour = Math.max.apply(null, rows.map(function (r) { return r.kcalHour; }));
 
     els.compareChart.innerHTML = rows.map(function (r) {
-      var widthPct = Math.max(4, (r.minutes / maxMinutes) * 100);
+      var widthPct = Math.max(4, (r.kcalHour / maxKcalHour) * 100);
       return (
         '<div class="compare-row' + (r.isYou ? " is-you" : "") + '">' +
           '<span class="compare-label">' + r.label + '<span class="compare-tag">' + r.detail + '</span></span>' +
           '<span class="compare-bar-track"><span class="compare-bar type-' + r.type + '" style="width:' + widthPct.toFixed(1) + '%"></span></span>' +
-          '<span class="compare-time">' + fmt(r.minutes, 1) + '<span class="compare-tag">min</span></span>' +
+          '<span class="compare-rate">' + Math.round(r.kcalHour) + '<span class="compare-tag">kcal/h</span></span>' +
         '</div>'
       );
     }).join("");
@@ -352,7 +389,6 @@
     syncWeightInput();
     syncHeightInput();
     syncSpeedSliderBounds();
-    unlockSection(els.profileSection);
     render();
     saveProfile();
   }
@@ -473,7 +509,6 @@
     syncSpeedSliderBounds();
 
     if (state.onboarded) {
-      els.profileSection.classList.remove("step-locked");
       els.calcGroup.classList.remove("step-locked");
     }
 

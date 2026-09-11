@@ -20,16 +20,17 @@
 
 <main>
 
-  <section class="unit-select" id="unit-select">
-    <span class="unit-select-label"><span class="step">1</span>Choose your units</span>
-    <div class="unit-toggle-lg" data-target="unit-system">
-      <button type="button" class="unit-btn-lg" data-unit="metric">Metric<span class="unit-sub">kg · cm</span></button>
-      <button type="button" class="unit-btn-lg" data-unit="imperial">Imperial<span class="unit-sub">lb · ft/in</span></button>
-    </div>
-  </section>
+  <section class="card" id="profile">
+    <h2><span class="step">1</span> Your profile</h2>
 
-  <section class="card step-locked" id="profile">
-    <h2><span class="step">2</span> Your profile</h2>
+    <div class="units-row">
+      <span class="units-row-label">Units</span>
+      <div class="unit-toggle-lg" data-target="unit-system">
+        <button type="button" class="unit-btn-lg" data-unit="metric">Metric<span class="unit-sub">kg · cm</span></button>
+        <button type="button" class="unit-btn-lg" data-unit="imperial">Imperial<span class="unit-sub">lb · ft/in</span></button>
+      </div>
+    </div>
+
     <div class="field-grid">
 
       <div class="field">
@@ -83,7 +84,7 @@
 
   <section class="card" id="controls">
     <div class="card-header-row">
-      <h2><span class="step">3</span> Pace &amp; incline</h2>
+      <h2><span class="step">2</span> Pace &amp; incline</h2>
       <div class="mode-toggle" data-target="speed-mode">
         <button type="button" class="mode-btn" data-mode="speed">Speed</button>
         <button type="button" class="mode-btn" data-mode="pace">Pace</button>
@@ -113,7 +114,7 @@
   </section>
 
   <section class="card highlight" id="result">
-    <h2><span class="step">4</span> Time to burn <span id="result-target">100</span> calories</h2>
+    <h2><span class="step">3</span> Time to burn <span id="result-target">100</span> calories</h2>
 
     <div class="slider-field target-field">
       <div class="slider-label-row">
@@ -151,8 +152,8 @@
   </section>
 
   <section class="card" id="compare">
-    <h2><span class="step">5</span> How your walk compares</h2>
-    <p class="section-note">Same <span id="compare-target">100</span> calories, seven different ways to get there. Shorter bar = faster burn.</p>
+    <h2><span class="step">4</span> How your walk compares</h2>
+    <p class="section-note">Burn rate across different pace and incline combos, including a couple close to your current walk's rate at a slower pace and higher incline. Longer bar = more calories burned per hour.</p>
     <div id="compare-chart" class="compare-chart"></div>
     <div class="legend">
       <span class="legend-item"><i class="dot dot-you"></i> Your walk</span>

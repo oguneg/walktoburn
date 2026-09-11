@@ -266,19 +266,17 @@ main {
   font-size: 12px;
 }
 
-.unit-select {
+.units-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: var(--bg-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--card-radius);
-  box-shadow: var(--shadow);
-  padding: 14px 20px;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--border);
 }
 
-.unit-select-label {
+.units-row-label {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
@@ -587,7 +585,7 @@ input[type="range"]::-moz-range-thumb {
 .compare-bar.type-jog { background: var(--jog); }
 .compare-bar.type-you { background: var(--you); }
 
-.compare-time {
+.compare-rate {
   grid-column: 2;
   grid-row: 1;
   text-align: right;
@@ -667,7 +665,7 @@ footer p { margin: 4px 0; }
   .result-sub-grid { row-gap: 16px; }
   .compare-row { font-size: 12px; }
   .hero { padding: 44px 16px 64px; }
-  .unit-select { flex-direction: column; align-items: stretch; gap: 10px; }
+  .units-row { flex-direction: column; align-items: stretch; gap: 10px; }
   .unit-toggle-lg { width: 100%; }
   .unit-btn-lg { flex: 1; }
   .rmr-toggle-row { flex-direction: column; align-items: stretch; }
